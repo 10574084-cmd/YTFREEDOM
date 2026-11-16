@@ -2,180 +2,246 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101114">
-<title>YT Freedom Player</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>YT Freedom · Videos y comentarios</title>
 <style>
 :root{color-scheme:dark;--bg:#101114;--panel:#191b20;--muted:#a5a8b2;--line:#2a2d35;--red:#ff4545;--text:#f5f6f8}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui, sans-serif}
-header{height:68px;display:flex;align-items:center;gap:18px;padding:0 5%;border-bottom:1px solid var(--line);position:sticky;top:0;background:#101114ed;backdrop-filter:blur(12px);z-index:2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}
+header{min-height:68px;display:flex;align-items:center;gap:18px;padding:12px 5%;border-bottom:1px solid var(--line);position:sticky;top:0;background:#101114ed;backdrop-filter:blur(12px);z-index:2}
 .logo{font-size:20px;font-weight:800;letter-spacing:-.7px;white-space:nowrap}.logo span{color:var(--red)}
-.search{display:flex;flex:1;max-width:680px;margin:auto}.search input{min-width:0;flex:1;background:#202229;border:1px solid var(--line);border-radius:24px 0 0 24px;padding:12px 17px;color:white;outline:none}.search input:focus{border-color:#777}.search button,.primary{background:var(--red);color:white;border:0;padding:0 20px;border-radius:0 24px 24px 0;cursor:pointer;font-weight:700}
-.account{border:1px solid var(--line);border-radius:22px;padding:9px 15px;background:transparent;color:white;white-space:nowrap;cursor:pointer}.account-status{font-size:12px;color:var(--muted);max-width:180px;overflow-wrap:anywhere}button[hidden]{display:none!important}
-main{width:min(1200px,92%);margin:30px auto}.welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.welcome h1{font-size:clamp(24px,4vw,34px);margin:0}.welcome p{color:var(--muted);margin:6px 0 0}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:22px}.player-wrap{background:#050506;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center}.player-wrap iframe{width:100%;height:100%;border:0}.placeholder{text-align:center;padding:24px;color:var(--muted)}.placeholder strong{display:block;color:white;font-size:18px;margin-bottom:8px}
-.details{padding:16px 2px}.details h2{font-size:20px;margin:0 0 8px}.details p{color:var(--muted);margin:0}.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}.action{border:1px solid var(--line);background:var(--panel);color:white;padding:9px 14px;border-radius:20px;cursor:pointer}
-.side{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px;height:max-content}.side h3{margin:0 0 12px}.side p{color:var(--muted);font-size:13px;line-height:1.5}.recent{padding:10px 0;border-top:1px solid var(--line);cursor:pointer;overflow-wrap:anywhere}.recent small{display:block;color:var(--muted);margin-top:4px}
-footer{color:#777e8b;text-align:center;padding:30px;font-size:12px}
-@media(max-width:800px){header{padding:0 4%;gap:10px}.logo{font-size:17px}.account{font-size:12px;padding:8px 10px}.layout{grid-template-columns:1fr}.side{order:2}.welcome{align-items:flex-start;flex-direction:column}}
+.search{display:flex;flex:1;max-width:760px;margin:auto}
+.search input{min-width:0;flex:1;background:#202229;border:1px solid var(--line);border-radius:24px 0 0 24px;padding:12px 17px;color:white;outline:none}
+.search input:focus{border-color:#777}
+.search button{background:var(--red);color:white;border:0;padding:0 22px;border-radius:0 24px 24px 0;cursor:pointer;font-weight:700}
+main{width:min(1050px,92%);margin:28px auto}
+.player-wrap{background:#050506;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center}
+.player-wrap iframe{width:100%;height:100%;border:0}
+.placeholder{text-align:center;padding:24px;color:var(--muted)}
+.placeholder strong{display:block;color:white;font-size:19px;margin-bottom:8px}
+.video-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 2px 22px}
+.video-row h1{font-size:19px;margin:0;overflow-wrap:anywhere}
+.watch-link{color:#ff7777;text-decoration:none;white-space:nowrap;font-size:13px}
+.comments{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.comments-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.comments-head h2{font-size:20px;margin:0}
+#commentCount{color:var(--muted);font-size:13px}
+.status{color:var(--muted);line-height:1.55;margin:12px 0}
+.comment{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px 0;border-top:1px solid var(--line)}
+.avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;background:#30333b}
+.avatar-fallback{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#30333b;color:#ddd;font-weight:700}
+.comment-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.author{font-weight:700;font-size:14px}.date,.likes,.replies{font-size:12px;color:var(--muted)}
+.comment-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.more{display:block;margin:16px auto 0;padding:10px 18px;background:#292c34;color:white;border:1px solid var(--line);border-radius:22px;cursor:pointer}
+.more:disabled{opacity:.5;cursor:default}
+footer{color:#777e8b;text-align:center;padding:26px;font-size:12px}
+@media(max-width:700px){header{padding:12px 4%;gap:10px;flex-wrap:wrap}.logo{font-size:18px}.search{order:2;flex-basis:100%;max-width:none}.search input{padding:11px 13px}.search button{padding:0 17px}main{margin:18px auto}.comments{padding:15px}.video-row{align-items:flex-start;flex-direction:column}}
 </style>
-
 </head>
 <body>
-<header><div class="logo">YT <span>FREEDOM</span></div>
-<form class="search" id="searchForm"><input id="videoInput" aria-label="Enlace o ID de YouTube" placeholder="Pega un enlace o ID de YouTube"><button type="submit">Abrir</button></form>
-<button class="account" id="loginBtn" type="button">Entrar con Google</button><button class="account" id="logoutBtn" type="button" hidden>Cerrar sesión</button><span class="account-status" id="accountStatus" aria-live="polite"></span></header>
+<header>
+  <div class="logo">YT <span>FREEDOM</span></div>
+  <form class="search" id="searchForm">
+    <input id="videoInput" aria-label="Enlace o ID de YouTube" placeholder="Pega un enlace o ID de YouTube" autocomplete="url">
+    <button type="submit">Ver</button>
+  </form>
+</header>
 <main>
-<section class="welcome"><div><h1>Tu espacio de video</h1><p>Reproduce videos mediante el reproductor oficial de YouTube.</p></div></section>
-<div class="layout"><section>
-<div class="player-wrap" id="player"><div class="placeholder"><strong>Listo cuando tú lo estés</strong>Pega un enlace o ID de video para comenzar.</div></div>
-<div class="details"><h2 id="videoTitle">Ningún video seleccionado</h2><p id="videoInfo">Los videos se reproducen desde YouTube y respetan su disponibilidad y restricciones.</p>
-<div class="actions"><button class="action" id="favoriteBtn" disabled>☆ Guardar favorito</button><button class="action" id="copyBtn" disabled>Copiar enlace</button></div></div>
-</section>
-<aside class="side"><h3>Vistos recientemente</h3><div id="history"><p>Aún no has reproducido videos.</p></div><p>El historial y los favoritos se guardan únicamente en este navegador.</p></aside></div>
-</main><footer>YT Freedom Player · Reproductor independiente con integración oficial de YouTube</footer>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-  getRedirectResult, onAuthStateChanged, setPersistence,
-  browserLocalPersistence, signOut
-} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+  <section class="player-wrap" id="player">
+    <div class="placeholder"><strong>YT Freedom</strong>Pega un enlace de YouTube para cargar el video y sus comentarios.</div>
+  </section>
+  <div class="video-row">
+    <h1 id="videoTitle">Ningún video seleccionado</h1>
+    <a class="watch-link" id="watchLink" href="https://www.youtube.com/" target="_blank" rel="noopener">Abrir en YouTube</a>
+  </div>
+  <section class="comments" aria-labelledby="commentsTitle">
+    <div class="comments-head">
+      <h2 id="commentsTitle">Comentarios</h2>
+      <span id="commentCount"></span>
+    </div>
+    <p class="status" id="commentStatus">Los comentarios públicos aparecerán aquí cuando cargues un video.</p>
+    <div id="commentList"></div>
+    <button class="more" id="moreButton" type="button" hidden>Cargar más comentarios</button>
+  </section>
+</main>
+<footer>YT Freedom · Reproductor oficial de YouTube y comentarios públicos</footer>
+<script>
+"use strict";
 
-// Pega aquí la configuración de tu aplicación web de Firebase.
-// Esta configuración web no es una contraseña ni una clave privada.
-const firebaseConfig = {
-  apiKey: "PON_AQUI_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  appId: "PON_AQUI_APP_ID"
-};
-
+// Para leer comentarios públicos, pega una API key de YouTube Data API v3.
+// Restringe esa clave por HTTP referrer y por YouTube Data API v3 en Google Cloud.
+const YOUTUBE_API_KEY = "PON_AQUI_TU_YOUTUBE_DATA_API_KEY";
 const $ = id => document.getElementById(id);
-let currentId = "";
-let auth = null;
-const readStored = key => {
-  try { return JSON.parse(localStorage.getItem(key) || "[]"); }
-  catch { return []; }
-};
-let history = readStored("ytf-history");
-let favorites = readStored("ytf-favorites");
+let currentVideoId = "";
+let nextPageToken = "";
 
-function videoId(value) {
-  const s = value.trim();
-  if (/^[\w-]{11}$/.test(s)) return s;
+function parseVideoId(input) {
+  const value = input.trim();
+  if (/^[A-Za-z0-9_-]{11}$/.test(value)) return value;
   try {
-    const u = new URL(s);
-    if (u.hostname.endsWith("youtu.be")) return u.pathname.split("/").filter(Boolean)[0] || "";
-    if (u.hostname.includes("youtube.com")) {
-      return u.searchParams.get("v") || u.pathname.match(/\/(?:embed|shorts)\/([\w-]{11})/)?.[1] || "";
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+    if (host === "youtu.be" || host.endsWith(".youtu.be")) {
+      return url.pathname.split("/").filter(Boolean)[0] || "";
+    }
+    if (host.includes("youtube.com")) {
+      const queryId = url.searchParams.get("v");
+      if (queryId) return queryId;
+      const match = url.pathname.match(/\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})/);
+      return match ? match[1] : "";
     }
   } catch {}
   return "";
 }
-function renderHistory() {
-  const box = $("history");
-  box.innerHTML = "";
-  if (!history.length) { box.innerHTML = "<p>Aún no has reproducido videos.</p>"; return; }
-  history.slice(0, 8).forEach(item => {
-    const el = document.createElement("div");
-    el.className = "recent";
-    el.textContent = item.id;
-    const small = document.createElement("small");
-    small.textContent = "Abrir de nuevo";
-    el.append(small);
-    el.onclick = () => loadVideo(item.id);
-    box.append(el);
-  });
-}
-function loadVideo(id) {
-  if (!/^[\w-]{11}$/.test(id)) return;
-  currentId = id;
-  $("player").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '" title="Reproductor de YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
-  $("videoTitle").textContent = "Video " + id;
-  $("videoInfo").textContent = "Contenido servido por YouTube. Si no se puede reproducir, puede que el propietario o YouTube haya limitado la inserción.";
-  $("favoriteBtn").disabled = false;
-  $("copyBtn").disabled = false;
-  history = [{id}, ...history.filter(x => x.id !== id)].slice(0, 20);
-  localStorage.setItem("ytf-history", JSON.stringify(history));
-  renderHistory();
-  updateFavorite();
-}
-function updateFavorite() {
-  $("favoriteBtn").textContent = favorites.includes(currentId) ? "★ En favoritos" : "☆ Guardar favorito";
-}
-function authErrorMessage(error) {
-  const messages = {
-    "auth/unauthorized-domain": "Este dominio todavía no está autorizado en Firebase Authentication.",
-    "auth/popup-blocked": "El navegador bloqueó la ventana de Google. Vuelve a intentarlo.",
-    "auth/popup-closed-by-user": "Se cerró la ventana de acceso.",
-    "auth/operation-not-allowed": "Activa el proveedor Google en Firebase Authentication.",
-    "auth/network-request-failed": "No se pudo conectar. Comprueba la conexión e inténtalo de nuevo."
-  };
-  return messages[error?.code] || "No se pudo iniciar sesión (" + (error?.code || "error desconocido") + ").";
-}
-$("searchForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const id = videoId($("videoInput").value);
-  if (id) loadVideo(id);
-  else $("videoInfo").textContent = "No reconocí el enlace. Usa un enlace o ID válido de YouTube.";
-});
-$("favoriteBtn").onclick = () => {
-  favorites = favorites.includes(currentId) ? favorites.filter(x => x !== currentId) : [currentId, ...favorites];
-  localStorage.setItem("ytf-favorites", JSON.stringify(favorites));
-  updateFavorite();
-};
-$("copyBtn").onclick = () => {
-  if (navigator.clipboard?.writeText) navigator.clipboard.writeText("https://www.youtube.com/watch?v=" + currentId);
-};
 
-async function setupGoogleSignIn() {
-  const configured = firebaseConfig.apiKey !== "PON_AQUI_API_KEY" &&
-    firebaseConfig.appId !== "PON_AQUI_APP_ID" &&
-    firebaseConfig.projectId !== "TU_PROYECTO" &&
-    firebaseConfig.authDomain !== "TU_PROYECTO.firebaseapp.com";
-  if (!configured) {
-    $("loginBtn").onclick = () => alert("Primero crea una aplicación web en Firebase, activa Google Authentication y pega su configuración en firebaseConfig dentro de index.html. Sigue los pasos del README.");
-    $("accountStatus").textContent = "Falta configurar Firebase";
+function setStatus(message) {
+  $("commentStatus").textContent = message;
+}
+
+function loadPlayer(videoId) {
+  const src = "https://www.youtube.com/embed/" + encodeURIComponent(videoId) + "?rel=0";
+  const frame = document.createElement("iframe");
+  frame.src = src;
+  frame.title = "Reproductor de YouTube";
+  frame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  frame.referrerPolicy = "strict-origin-when-cross-origin";
+  frame.allowFullscreen = true;
+  $("player").replaceChildren(frame);
+  $("videoTitle").textContent = "Video: " + videoId;
+  $("watchLink").href = "https://www.youtube.com/watch?v=" + encodeURIComponent(videoId);
+}
+
+function renderComment(item) {
+  const snippet = item?.snippet?.topLevelComment?.snippet;
+  if (!snippet) return;
+  const card = document.createElement("article");
+  card.className = "comment";
+
+  const avatarUrl = snippet.authorProfileImageUrl;
+  if (avatarUrl) {
+    const avatar = document.createElement("img");
+    avatar.className = "avatar";
+    avatar.alt = "";
+    avatar.loading = "lazy";
+    avatar.referrerPolicy = "no-referrer";
+    avatar.src = avatarUrl;
+    avatar.onerror = () => {
+      const fallback = document.createElement("div");
+      fallback.className = "avatar-fallback";
+      fallback.textContent = (snippet.authorDisplayName || "?").slice(0,1).toUpperCase();
+      avatar.replaceWith(fallback);
+    };
+    card.append(avatar);
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "avatar-fallback";
+    fallback.textContent = (snippet.authorDisplayName || "?").slice(0,1).toUpperCase();
+    card.append(fallback);
+  }
+
+  const body = document.createElement("div");
+  const meta = document.createElement("div");
+  meta.className = "comment-meta";
+  const author = document.createElement("span");
+  author.className = "author";
+  author.textContent = snippet.authorDisplayName || "Usuario de YouTube";
+  const date = document.createElement("span");
+  date.className = "date";
+  const parsedDate = snippet.publishedAt ? new Date(snippet.publishedAt) : null;
+  date.textContent = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toLocaleDateString() : "";
+  const likes = document.createElement("span");
+  likes.className = "likes";
+  likes.textContent = "👍 " + (snippet.likeCount || 0);
+  meta.append(author, date, likes);
+  const text = document.createElement("p");
+  text.className = "comment-text";
+  text.textContent = snippet.textDisplay || snippet.textOriginal || "";
+  body.append(meta, text);
+  const replies = Number(item?.snippet?.totalReplyCount || 0);
+  if (replies > 0) {
+    const replyLabel = document.createElement("div");
+    replyLabel.className = "replies";
+    replyLabel.textContent = replies + (replies === 1 ? " respuesta" : " respuestas");
+    replyLabel.style.marginTop = "8px";
+    body.append(replyLabel);
+  }
+  card.append(body);
+  $("commentList").append(card);
+}
+
+function explainApiError(error) {
+  const reason = error?.error?.errors?.[0]?.reason || "";
+  if (reason === "commentsDisabled") return "Este video tiene los comentarios desactivados.";
+  if (reason === "keyInvalid" || reason === "accessNotConfigured") return "La API key no es válida o YouTube Data API v3 no está activada para el proyecto.";
+  if (reason === "quotaExceeded" || reason === "dailyLimitExceeded") return "Se alcanzó el límite diario de solicitudes de la API.";
+  if (reason === "videoNotFound") return "No se encontró el video o no está disponible.";
+  return error?.error?.message || "No se pudieron cargar los comentarios.";
+}
+
+async function loadComments(pageToken = "") {
+  if (!currentVideoId) return;
+  if (YOUTUBE_API_KEY === "PON_AQUI_TU_YOUTUBE_DATA_API_KEY") {
+    setStatus("Falta configurar una API key de YouTube Data API v3. Consulta la sección de comentarios del README.");
     return;
   }
+
+  const button = $("moreButton");
+  button.disabled = true;
+  if (!pageToken) {
+    $("commentList").replaceChildren();
+    $("commentCount").textContent = "";
+    setStatus("Cargando comentarios públicos…");
+  }
+
+  const params = new URLSearchParams({
+    part: "snippet",
+    videoId: currentVideoId,
+    maxResults: "20",
+    order: "relevance",
+    textFormat: "plainText",
+    key: YOUTUBE_API_KEY
+  });
+  if (pageToken) params.set("pageToken", pageToken);
+
   try {
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-    await setPersistence(auth, browserLocalPersistence);
-    onAuthStateChanged(auth, user => {
-      $("loginBtn").hidden = !!user;
-      $("logoutBtn").hidden = !user;
-      $("accountStatus").textContent = user ? (user.displayName || user.email || "Cuenta conectada") : "";
-    });
-    $("loginBtn").onclick = async () => {
-      $("loginBtn").disabled = true;
-      $("accountStatus").textContent = "Conectando con Google…";
-      try {
-        if (window.matchMedia("(max-width: 700px)").matches) {
-          await signInWithRedirect(auth, provider);
-        } else {
-          await signInWithPopup(auth, provider);
-        }
-      } catch (error) {
-        $("accountStatus").textContent = authErrorMessage(error);
-        $("loginBtn").disabled = false;
-      }
-    };
-    $("logoutBtn").onclick = async () => {
-      try { await signOut(auth); }
-      catch (error) { $("accountStatus").textContent = authErrorMessage(error); }
-    };
-    try { await getRedirectResult(auth); }
-    catch (error) { $("accountStatus").textContent = authErrorMessage(error); }
+    const response = await fetch("https://www.googleapis.com/youtube/v3/commentThreads?" + params.toString());
+    const data = await response.json();
+    if (!response.ok) throw data;
+    const items = Array.isArray(data.items) ? data.items : [];
+    items.forEach(renderComment);
+    nextPageToken = data.nextPageToken || "";
+    $("commentCount").textContent = data.pageInfo?.totalResults != null
+      ? data.pageInfo.totalResults + " comentarios"
+      : "";
+    button.hidden = !nextPageToken;
+    setStatus(items.length ? "" : "Este video no tiene comentarios públicos disponibles.");
   } catch (error) {
-    $("accountStatus").textContent = authErrorMessage(error);
+    button.hidden = true;
+    setStatus(explainApiError(error));
+  } finally {
+    button.disabled = false;
   }
 }
 
-renderHistory();
-setupGoogleSignIn();
+$("searchForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const id = parseVideoId($("videoInput").value);
+  if (!id) {
+    setStatus("No reconocí el enlace. Pega un enlace normal de YouTube o un ID de 11 caracteres.");
+    return;
+  }
+  currentVideoId = id;
+  nextPageToken = "";
+  loadPlayer(id);
+  loadComments();
+});
+
+$("moreButton").addEventListener("click", () => {
+  if (nextPageToken) loadComments(nextPageToken);
+});
 </script>
-</body></html>
+</body>
+</html>
