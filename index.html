@@ -19,7 +19,7 @@ main{width:min(1200px,92%);margin:30px auto}.welcome{display:flex;align-items:ce
 footer{color:#777e8b;text-align:center;padding:30px;font-size:12px}
 @media(max-width:800px){header{padding:0 4%;gap:10px}.logo{font-size:17px}.account{font-size:12px;padding:8px 10px}.layout{grid-template-columns:1fr}.side{order:2}.welcome{align-items:flex-start;flex-direction:column}}
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer onload="initGoogle()"></script>
 </head>
 <body>
 <header><div class="logo">YT <span>FREEDOM</span></div>
@@ -52,6 +52,6 @@ $("searchForm").addEventListener("submit",e=>{e.preventDefault();const id=videoI
 $("favoriteBtn").onclick=()=>{favorites=favorites.includes(currentId)?favorites.filter(x=>x!==currentId):[currentId,...favorites];localStorage.setItem("ytf-favorites",JSON.stringify(favorites));updateFavorite();};
 $("copyBtn").onclick=()=>navigator.clipboard?.writeText("https://www.youtube.com/watch?v="+currentId);
 $("loginBtn").onclick=()=>{if(CLIENT_ID.startsWith("PON_AQUI")){alert("Primero configura tu Client ID de Google en el archivo index.html. No compartas contraseñas ni secretos.");return;}if(!window.google?.accounts?.id){alert("El servicio de inicio de sesión de Google todavía está cargando.");return;}google.accounts.id.prompt();};
-window.onload=()=>{renderHistory();if(!CLIENT_ID.startsWith("PON_AQUI")&&window.google?.accounts?.id){google.accounts.id.initialize({client_id:CLIENT_ID,callback:credential=>{try{const payload=JSON.parse(atob(credential.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));$("loginBtn").textContent=payload.name||"Sesión iniciada";}catch{$("loginBtn").textContent="Sesión iniciada";}}});}};
+function initGoogle(){if(CLIENT_ID.startsWith("PON_AQUI")||!window.google?.accounts?.id)return;google.accounts.id.initialize({client_id:CLIENT_ID,callback:credential=>{try{const payload=JSON.parse(atob(credential.credential.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));$("loginBtn").textContent=payload.name||"Sesión iniciada";}catch{$("loginBtn").textContent="Sesión iniciada";}}});}\nwindow.onload=()=>renderHistory();
 </script>
 </body></html>
