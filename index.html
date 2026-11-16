@@ -63,12 +63,12 @@ let favorites = readStored("ytf-favorites");
 
 function videoId(value) {
   const s = value.trim();
-  if (/^[\\w-]{11}$/.test(s)) return s;
+  if (/^[\w-]{11}$/.test(s)) return s;
   try {
     const u = new URL(s);
     if (u.hostname.endsWith("youtu.be")) return u.pathname.split("/").filter(Boolean)[0] || "";
     if (u.hostname.includes("youtube.com")) {
-      return u.searchParams.get("v") || u.pathname.match(/\\/(?:embed|shorts)\\/([\\w-]{11})/)?.[1] || "";
+      return u.searchParams.get("v") || u.pathname.match(/\/(?:embed|shorts)\/([\w-]{11})/)?.[1] || "";
     }
   } catch {}
   return "";
@@ -89,7 +89,7 @@ function renderHistory() {
   });
 }
 function loadVideo(id) {
-  if (!/^[\\w-]{11}$/.test(id)) return;
+  if (!/^[\w-]{11}$/.test(id)) return;
   currentId = id;
   $("player").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '" title="Reproductor de YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
   $("videoTitle").textContent = "Video " + id;
@@ -177,5 +177,5 @@ async function setupGoogleSignIn() {
 
 renderHistory();
 setupGoogleSignIn();
-</script>>
+</script>
 </body></html>
