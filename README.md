@@ -1,31 +1,46 @@
 # YT Freedom Player
 
-A lightweight, responsive video interface hosted on GitHub Pages. It uses YouTube's official embedded player.
+Aplicación web ligera y adaptable para abrir videos mediante el reproductor oficial de YouTube. Está pensada para publicarse como sitio estático en GitHub Pages.
 
-## Features
+## Funciones actuales
 
-- Open a YouTube video using its URL or 11-character video ID.
-- Responsive embedded player.
-- Local recent-history and favorites stored in the current browser.
-- Optional Google sign-in button using Google Identity Services.
+- Abrir videos pegando un enlace o un ID de YouTube.
+- Reproductor oficial incrustado.
+- Historial reciente y favoritos guardados en el navegador.
+- Inicio y cierre de sesión con Google mediante Firebase Authentication.
+- Diseño adaptable a escritorio y móvil.
 
-## Google sign-in setup
+## Activar el inicio de sesión con Google
 
-1. Create an OAuth 2.0 **Web application** client in Google Cloud Console.
-2. Add this exact authorized JavaScript origin: `https://10574084-cmd.github.io`
-3. Copy the OAuth client ID (it ends in `.apps.googleusercontent.com`).
-4. In `index.html`, replace `PON_AQUI_TU_GOOGLE_OAUTH_CLIENT_ID` in `CLIENT_ID` with that client ID.
-5. Commit the change and open the GitHub Pages site.
+1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/).
+2. En el proyecto, registra una aplicación web y copia su objeto de configuración.
+3. Abre **Authentication → Sign-in method** y activa **Google**. Guarda los cambios.
+4. En **Authentication → Settings → Authorized domains**, añade este dominio:
+   `10574084-cmd.github.io`
+5. En los ajustes del proyecto, busca la configuración de tu aplicación web.
+6. En `index.html`, reemplaza los valores de ejemplo de `firebaseConfig` por los valores reales de tu aplicación web:
+   - `apiKey`
+   - `authDomain`
+   - `projectId`
+   - `appId`
+7. Guarda el cambio en la rama `main` y espera a que GitHub Pages publique la actualización.
 
-Never put a client secret, password, or private key in this repository. This sign-in only identifies the user to this app; it does not grant YouTube API permissions or sign the user into YouTube.
+La configuración web de Firebase está diseñada para incluirse en el navegador. **No** publiques claves privadas, archivos JSON de cuentas de servicio ni credenciales de Firebase Admin.
 
-## Important limitations
+El acceso usa Firebase Authentication para crear una sesión de la aplicación y mantenerla entre recargas. No inicia sesión en YouTube ni concede permisos para dar Me gusta, publicar comentarios o administrar suscripciones.
 
-- Video playback is provided by YouTube's official embed. Videos that disallow embedding, require age/account verification, or are unavailable in a region/network may not play here.
-- This project does not proxy YouTube traffic or bypass school, network, account, or platform restrictions.
-- Search, comments, likes, subscriptions, and posting comments are not implemented. Those require approved YouTube API access and the appropriate user authorization.
-- History and favorites are local to this browser and are not synced between devices.
+## Límites
 
-## GitHub Pages
+- La reproducción depende del reproductor oficial de YouTube y de que el video permita la inserción.
+- La aplicación no actúa como proxy ni evita bloqueos de red, controles escolares, restricciones de cuenta o límites de YouTube.
+- La búsqueda interna, los comentarios, los Me gusta de YouTube y las suscripciones todavía no están implementados. Requieren integración con las API oficiales y los permisos correspondientes.
+- El historial y los favoritos actuales se guardan localmente en el navegador; no se sincronizan entre dispositivos.
 
-The repository's Pages workflow/deployment settings can publish `index.html` from the configured branch. Keep the existing Actions workflow intact.
+## Publicación
+
+Mantén la configuración de GitHub Pages y el workflow de Actions que ya tiene el repositorio. El archivo principal de la aplicación es `index.html`.
+
+## Documentación oficial
+
+- [Firebase: iniciar sesión con Google en JavaScript](https://firebase.google.com/docs/auth/web/google-signin)
+- [Firebase: añadir Firebase a un proyecto web](https://firebase.google.com/docs/web/setup)
