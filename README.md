@@ -1,46 +1,25 @@
-# YT Freedom Player
+# YT Freedom
 
-Aplicación web ligera y adaptable para abrir videos mediante el reproductor oficial de YouTube. Está pensada para publicarse como sitio estático en GitHub Pages.
+Interfaz web estática para reproducir videos permitidos mediante el reproductor oficial de YouTube y mostrar su sección de comentarios públicos.
 
-## Funciones actuales
+## Estado actual
 
-- Abrir videos pegando un enlace o un ID de YouTube.
+- Sin inicio de sesión ni cuenta propia de YT Freedom.
+- Campo para pegar un enlace o ID de YouTube.
 - Reproductor oficial incrustado.
-- Historial reciente y favoritos guardados en el navegador.
-- Inicio y cierre de sesión con Google mediante Firebase Authentication.
-- Diseño adaptable a escritorio y móvil.
+- Panel de comentarios públicos con paginación.
+- Diseño adaptable a PC y móvil.
 
-## Activar el inicio de sesión con Google
+## Reproducción y error 153
 
-1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/).
-2. En el proyecto, registra una aplicación web y copia su objeto de configuración.
-3. Abre **Authentication → Sign-in method** y activa **Google**. Guarda los cambios.
-4. En **Authentication → Settings → Authorized domains**, añade este dominio:
-   `10574084-cmd.github.io`
-5. En los ajustes del proyecto, busca la configuración de tu aplicación web.
-6. En `index.html`, reemplaza los valores de ejemplo de `firebaseConfig` por los valores reales de tu aplicación web:
-   - `apiKey`
-   - `authDomain`
-   - `projectId`
-   - `appId`
-7. Guarda el cambio en la rama `main` y espera a que GitHub Pages publique la actualización.
+La página declara la política de referencia `strict-origin-when-cross-origin` en el documento y en el reproductor. YouTube necesita recibir una cabecera HTTP Referer (o una identificación equivalente del cliente) para permitir la reproducción incrustada.
 
-La configuración web de Firebase está diseñada para incluirse en el navegador. **No** publiques claves privadas, archivos JSON de cuentas de servicio ni credenciales de Firebase Admin.
+Si aparece el error 153, comprueba que estás abriendo la página publicada de GitHub Pages y no la URL del iframe directamente. Si la red o el navegador administrado elimina esa cabecera o bloquea YouTube, el código de la página no puede forzar el acceso. En ese caso, usa YouTube por los medios autorizados o pide al administrador que permita el reproductor para un uso aprobado.
 
-El acceso usa Firebase Authentication para crear una sesión de la aplicación y mantenerla entre recargas. No inicia sesión en YouTube ni concede permisos para dar Me gusta, publicar comentarios o administrar suscripciones.
+## Comentarios
 
-## Límites
-
-- La reproducción depende del reproductor oficial de YouTube y de que el video permita la inserción.
-- La aplicación no actúa como proxy ni evita bloqueos de red, controles escolares, restricciones de cuenta o límites de YouTube.
-- La búsqueda interna, los comentarios, los Me gusta de YouTube y las suscripciones todavía no están implementados. Requieren integración con las API oficiales y los permisos correspondientes.
-- El historial y los favoritos actuales se guardan localmente en el navegador; no se sincronizan entre dispositivos.
+Los comentarios proceden de la API oficial de YouTube Data API. Su disponibilidad depende de que el video tenga los comentarios habilitados y de la configuración válida de la API. No se inventan comentarios ni se muestran comentarios de videos distintos.
 
 ## Publicación
 
-Mantén la configuración de GitHub Pages y el workflow de Actions que ya tiene el repositorio. El archivo principal de la aplicación es `index.html`.
-
-## Documentación oficial
-
-- [Firebase: iniciar sesión con Google en JavaScript](https://firebase.google.com/docs/auth/web/google-signin)
-- [Firebase: añadir Firebase a un proyecto web](https://firebase.google.com/docs/web/setup)
+El archivo de entrada es `index.html`. El repositorio tiene GitHub Pages habilitado; conserva la configuración de publicación que ya existe.
