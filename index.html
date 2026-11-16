@@ -11,7 +11,7 @@
 header{height:68px;display:flex;align-items:center;gap:18px;padding:0 5%;border-bottom:1px solid var(--line);position:sticky;top:0;background:#101114ed;backdrop-filter:blur(12px);z-index:2}
 .logo{font-size:20px;font-weight:800;letter-spacing:-.7px;white-space:nowrap}.logo span{color:var(--red)}
 .search{display:flex;flex:1;max-width:680px;margin:auto}.search input{min-width:0;flex:1;background:#202229;border:1px solid var(--line);border-radius:24px 0 0 24px;padding:12px 17px;color:white;outline:none}.search input:focus{border-color:#777}.search button,.primary{background:var(--red);color:white;border:0;padding:0 20px;border-radius:0 24px 24px 0;cursor:pointer;font-weight:700}
-.account{border:1px solid var(--line);border-radius:22px;padding:9px 15px;background:transparent;color:white;white-space:nowrap;cursor:pointer}.google-button{display:flex;align-items:center;min-width:150px}#accountStatus{font-size:12px;color:var(--muted)}
+.account{border:1px solid var(--line);border-radius:22px;padding:9px 15px;background:transparent;color:white;white-space:nowrap;cursor:pointer}.account-status{font-size:12px;color:var(--muted);max-width:180px;overflow-wrap:anywhere}button[hidden]{display:none!important}
 main{width:min(1200px,92%);margin:30px auto}.welcome{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}.welcome h1{font-size:clamp(24px,4vw,34px);margin:0}.welcome p{color:var(--muted);margin:6px 0 0}
 .layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:22px}.player-wrap{background:#050506;border:1px solid var(--line);border-radius:16px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center}.player-wrap iframe{width:100%;height:100%;border:0}.placeholder{text-align:center;padding:24px;color:var(--muted)}.placeholder strong{display:block;color:white;font-size:18px;margin-bottom:8px}
 .details{padding:16px 2px}.details h2{font-size:20px;margin:0 0 8px}.details p{color:var(--muted);margin:0}.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}.action{border:1px solid var(--line);background:var(--panel);color:white;padding:9px 14px;border-radius:20px;cursor:pointer}
@@ -19,12 +19,12 @@ main{width:min(1200px,92%);margin:30px auto}.welcome{display:flex;align-items:ce
 footer{color:#777e8b;text-align:center;padding:30px;font-size:12px}
 @media(max-width:800px){header{padding:0 4%;gap:10px}.logo{font-size:17px}.account{font-size:12px;padding:8px 10px}.layout{grid-template-columns:1fr}.side{order:2}.welcome{align-items:flex-start;flex-direction:column}}
 </style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body>
 <header><div class="logo">YT <span>FREEDOM</span></div>
 <form class="search" id="searchForm"><input id="videoInput" aria-label="Enlace o ID de YouTube" placeholder="Pega un enlace o ID de YouTube"><button type="submit">Abrir</button></form>
-<div class="google-button" id="googleButton"><button class="account" id="loginBtn" type="button">Iniciar sesión</button></div><span id="accountStatus" aria-live="polite"></span></header>
+<button class="account" id="loginBtn" type="button">Entrar con Google</button><button class="account" id="logoutBtn" type="button" hidden>Cerrar sesión</button><span class="account-status" id="accountStatus" aria-live="polite"></span></header>
 <main>
 <section class="welcome"><div><h1>Tu espacio de video</h1><p>Reproduce videos mediante el reproductor oficial de YouTube.</p></div></section>
 <div class="layout"><section>
@@ -34,33 +34,148 @@ footer{color:#777e8b;text-align:center;padding:30px;font-size:12px}
 </section>
 <aside class="side"><h3>Vistos recientemente</h3><div id="history"><p>Aún no has reproducido videos.</p></div><p>El historial y los favoritos se guardan únicamente en este navegador.</p></aside></div>
 </main><footer>YT Freedom Player · Reproductor independiente con integración oficial de YouTube</footer>
-<script>
-const CLIENT_ID = "PON_AQUI_TU_GOOGLE_OAUTH_CLIENT_ID";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, onAuthStateChanged, setPersistence,
+  browserLocalPersistence, signOut
+} from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+
+// Pega aquí la configuración de tu aplicación web de Firebase.
+// Esta configuración web no es una contraseña ni una clave privada.
+const firebaseConfig = {
+  apiKey: "PON_AQUI_API_KEY",
+  authDomain: "TU_PROYECTO.firebaseapp.com",
+  projectId: "TU_PROYECTO",
+  appId: "PON_AQUI_APP_ID"
+};
+
 const $ = id => document.getElementById(id);
 let currentId = "";
-let history = JSON.parse(localStorage.getItem("ytf-history") || "[]");
-let favorites = JSON.parse(localStorage.getItem("ytf-favorites") || "[]");
-function videoId(value){
-  const s=value.trim(); if(/^[\w-]{11}$/.test(s)) return s;
-  try{const u=new URL(s); if(u.hostname.endsWith("youtu.be")) return u.pathname.split("/").filter(Boolean)[0]||""; if(u.hostname.includes("youtube.com")) return u.searchParams.get("v")||u.pathname.match(/\/(?:embed|shorts)\/([\w-]{11})/)?.[1]||"";}catch{}
+let auth = null;
+const readStored = key => {
+  try { return JSON.parse(localStorage.getItem(key) || "[]"); }
+  catch { return []; }
+};
+let history = readStored("ytf-history");
+let favorites = readStored("ytf-favorites");
+
+function videoId(value) {
+  const s = value.trim();
+  if (/^[\\w-]{11}$/.test(s)) return s;
+  try {
+    const u = new URL(s);
+    if (u.hostname.endsWith("youtu.be")) return u.pathname.split("/").filter(Boolean)[0] || "";
+    if (u.hostname.includes("youtube.com")) {
+      return u.searchParams.get("v") || u.pathname.match(/\\/(?:embed|shorts)\\/([\\w-]{11})/)?.[1] || "";
+    }
+  } catch {}
   return "";
 }
-function renderHistory(){const box=$("history");box.innerHTML="";if(!history.length){box.innerHTML="<p>Aún no has reproducido videos.</p>";return;}history.slice(0,8).forEach(item=>{const el=document.createElement("div");el.className="recent";el.textContent=item.id;const small=document.createElement("small");small.textContent="Abrir de nuevo";el.append(small);el.onclick=()=>loadVideo(item.id);box.append(el);});}
-function loadVideo(id){if(!/^[\w-]{11}$/.test(id))return;currentId=id;$("player").innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'" title="Reproductor de YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';$("videoTitle").textContent="Video "+id;$("videoInfo").textContent="Contenido servido por YouTube. Si no se puede reproducir, puede que el propietario o YouTube haya limitado la inserción.";$("favoriteBtn").disabled=false;$("copyBtn").disabled=false;history=[{id},...history.filter(x=>x.id!==id)].slice(0,20);localStorage.setItem("ytf-history",JSON.stringify(history));renderHistory();updateFavorite();}
-function updateFavorite(){$("favoriteBtn").textContent=favorites.includes(currentId)?"★ En favoritos":"☆ Guardar favorito";}
-$("searchForm").addEventListener("submit",e=>{e.preventDefault();const id=videoId($("videoInput").value);if(id)loadVideo(id);else $("videoInfo").textContent="No reconocí el enlace. Usa un enlace o ID válido de YouTube.";});
-$("favoriteBtn").onclick=()=>{favorites=favorites.includes(currentId)?favorites.filter(x=>x!==currentId):[currentId,...favorites];localStorage.setItem("ytf-favorites",JSON.stringify(favorites));updateFavorite();};
-$("copyBtn").onclick=()=>navigator.clipboard?.writeText("https://www.youtube.com/watch?v="+currentId);
-$("loginBtn").onclick=()=>{if(CLIENT_ID.startsWith("PON_AQUI")){alert("Para activar el acceso con Google, configura el Client ID en index.html siguiendo el README. Nunca compartas tu contraseña ni un client secret.");return;}if(!window.google?.accounts?.id){alert("No se pudo cargar el inicio de sesión de Google. Comprueba que accounts.google.com esté disponible y vuelve a cargar la página.");return;}};
-function initGoogle(){
-  if(CLIENT_ID.startsWith("PON_AQUI"))return;
-  if(!window.google?.accounts?.id){$("accountStatus").textContent="Google no está disponible";return;}
-  google.accounts.id.initialize({client_id:CLIENT_ID,callback:response=>{
-    if(response&&response.credential){$("accountStatus").textContent="Cuenta de Google seleccionada";}
-  }});
-  google.accounts.id.renderButton($("googleButton"),{type:"standard",theme:"filled_black",size:"medium",shape:"pill",text:"signin_with",width:170});
-  const fallback=$("loginBtn");if(fallback)fallback.remove();
+function renderHistory() {
+  const box = $("history");
+  box.innerHTML = "";
+  if (!history.length) { box.innerHTML = "<p>Aún no has reproducido videos.</p>"; return; }
+  history.slice(0, 8).forEach(item => {
+    const el = document.createElement("div");
+    el.className = "recent";
+    el.textContent = item.id;
+    const small = document.createElement("small");
+    small.textContent = "Abrir de nuevo";
+    el.append(small);
+    el.onclick = () => loadVideo(item.id);
+    box.append(el);
+  });
 }
-window.addEventListener("load",()=>{renderHistory();initGoogle();});
-</script>
+function loadVideo(id) {
+  if (!/^[\\w-]{11}$/.test(id)) return;
+  currentId = id;
+  $("player").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '" title="Reproductor de YouTube" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>';
+  $("videoTitle").textContent = "Video " + id;
+  $("videoInfo").textContent = "Contenido servido por YouTube. Si no se puede reproducir, puede que el propietario o YouTube haya limitado la inserción.";
+  $("favoriteBtn").disabled = false;
+  $("copyBtn").disabled = false;
+  history = [{id}, ...history.filter(x => x.id !== id)].slice(0, 20);
+  localStorage.setItem("ytf-history", JSON.stringify(history));
+  renderHistory();
+  updateFavorite();
+}
+function updateFavorite() {
+  $("favoriteBtn").textContent = favorites.includes(currentId) ? "★ En favoritos" : "☆ Guardar favorito";
+}
+function authErrorMessage(error) {
+  const messages = {
+    "auth/unauthorized-domain": "Este dominio todavía no está autorizado en Firebase Authentication.",
+    "auth/popup-blocked": "El navegador bloqueó la ventana de Google. Vuelve a intentarlo.",
+    "auth/popup-closed-by-user": "Se cerró la ventana de acceso.",
+    "auth/operation-not-allowed": "Activa el proveedor Google en Firebase Authentication.",
+    "auth/network-request-failed": "No se pudo conectar. Comprueba la conexión e inténtalo de nuevo."
+  };
+  return messages[error?.code] || "No se pudo iniciar sesión (" + (error?.code || "error desconocido") + ").";
+}
+$("searchForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const id = videoId($("videoInput").value);
+  if (id) loadVideo(id);
+  else $("videoInfo").textContent = "No reconocí el enlace. Usa un enlace o ID válido de YouTube.";
+});
+$("favoriteBtn").onclick = () => {
+  favorites = favorites.includes(currentId) ? favorites.filter(x => x !== currentId) : [currentId, ...favorites];
+  localStorage.setItem("ytf-favorites", JSON.stringify(favorites));
+  updateFavorite();
+};
+$("copyBtn").onclick = () => {
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText("https://www.youtube.com/watch?v=" + currentId);
+};
+
+async function setupGoogleSignIn() {
+  const configured = firebaseConfig.apiKey !== "PON_AQUI_API_KEY" &&
+    firebaseConfig.appId !== "PON_AQUI_APP_ID" &&
+    firebaseConfig.projectId !== "TU_PROYECTO" &&
+    firebaseConfig.authDomain !== "TU_PROYECTO.firebaseapp.com";
+  if (!configured) {
+    $("loginBtn").onclick = () => alert("Primero crea una aplicación web en Firebase, activa Google Authentication y pega su configuración en firebaseConfig dentro de index.html. Sigue los pasos del README.");
+    $("accountStatus").textContent = "Falta configurar Firebase";
+    return;
+  }
+  try {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    await setPersistence(auth, browserLocalPersistence);
+    onAuthStateChanged(auth, user => {
+      $("loginBtn").hidden = !!user;
+      $("logoutBtn").hidden = !user;
+      $("accountStatus").textContent = user ? (user.displayName || user.email || "Cuenta conectada") : "";
+    });
+    $("loginBtn").onclick = async () => {
+      $("loginBtn").disabled = true;
+      $("accountStatus").textContent = "Conectando con Google…";
+      try {
+        if (window.matchMedia("(max-width: 700px)").matches) {
+          await signInWithRedirect(auth, provider);
+        } else {
+          await signInWithPopup(auth, provider);
+        }
+      } catch (error) {
+        $("accountStatus").textContent = authErrorMessage(error);
+        $("loginBtn").disabled = false;
+      }
+    };
+    $("logoutBtn").onclick = async () => {
+      try { await signOut(auth); }
+      catch (error) { $("accountStatus").textContent = authErrorMessage(error); }
+    };
+    try { await getRedirectResult(auth); }
+    catch (error) { $("accountStatus").textContent = authErrorMessage(error); }
+  } catch (error) {
+    $("accountStatus").textContent = authErrorMessage(error);
+  }
+}
+
+renderHistory();
+setupGoogleSignIn();
+</script>>
 </body></html>
